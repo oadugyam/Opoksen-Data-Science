@@ -1,0 +1,233 @@
+/* Integer LP */
+proc optmodel;
+var X >= 0 integer, Y >= 0 integer, Z >= 0 Integer ;
+min cost = 4*X + 5*Y + 2*Z;
+con 7*X + 8*Y + 3*Z >= 20;
+solve;
+print x y z cost;
+
+/* NLP */
+proc optmodel;
+var X , Y , Z  ;
+max profit = 3*X + 5*Y - 4*Z;
+con 6*X**2 + 2*Y**2 + 3*Z**2 <= 17;
+con X + Y + Z = 3;
+con -1 <= X <=1;
+solve;
+print x y z profit;
+
+/* LP */
+proc optmodel;
+var X >= 0 , Y >= 0 , Z >= 0 ;
+max profit = 12*X + 19*Y - 4*Z;
+con X + 3*Y + Z = 225;
+con x + y - z <=117;
+solve;
+print x y z profit;
+quit;
+
+/* MILP */
+proc optmodel;
+var X >= 0 integer , Y >= 0 integer, Z  ;
+max profit = 4*X + 5*Y ;
+con X + Y + 2*Z <= 10;
+con 2*X + 3*Y - 3*Z <=5;
+solve;
+print x y z profit;
+
+/*two dimensional NLP*/
+proc optmodel;
+var x >=0 , y <=0;
+
+min cost = x**2  - x -2*y - x*y + y**2;
+
+solve;
+print x y cost;
+quit;
+
+/* Graphing the functions*/
+data polynomial;
+do x=-1 to 4 by .05;
+do y=-1 to 4 by .05;
+z=x**2-x-2*y-x*y+y**2;
+output;
+end;
+end;
+run;
+proc g3d data=polynomial;
+plot y*x=z / grid rotate=-25 ctop=green cbottom=red
+yticknum=3 xticknum=3 zmin=-5 zmax=0;
+run;
+
+/*Unbounded NLP*/
+proc optmodel;
+var x  , y ;
+
+min cost = x**2  - x -2*y - x*y + y**2;
+
+solve;
+print x y cost;
+quit;
+
+/*bounded NLP*/
+proc optmodel;
+var x >=0  , y<=0 ;
+
+min cost = x**2  - x -2*y - x*y + y**2;
+
+solve;
+print x y cost;
+quit;
+
+/* chapter 2.1 demo */
+proc optmodel;
+ /* declare variables */ 
+var x >= 0, y >= 0; 
+/* declare objective */
+ max z = 12*x + 19*y; 
+ /* declare constraints */ 
+con x + 3*y <= 225; 
+con x + y <= 117; 
+con 3*x + 4*y <= 420; 
+solve; 
+print x y;
+quit;
+
+proc optmodel;
+ /* declare variables */
+ var x >= 0, y >= 0; 
+ /* declare objective */
+ max z = 12*x + 19*y; 
+ /* declare constraints */ 
+con x + 3*y <= 225; 
+con x + y <= 117; 
+con 3*x + 4*y <= 420; 
+solve with lp / algorithm=ps; /* by default the dual simplex is use. You can overide it. dual start from large to small. primal start from small to large*/
+print x y; 
+print _con_.dual; /* Way to print the lagrarian multiplier*/
+ quit;
+ 
+ 
+  proc optmodel;
+ /* declare variables */
+ var a >= 0, b >= 0, c>= 0;
+ /* declare objective */
+ min d = 225*a + 117*b + 420*c;
+ /* declare constraints */
+ con a + b + 3*c >= 12;
+ con 3*a + b + 4*c >= 19;
+ solve /*with lp / algorithm=ps*/;
+ print a b c;
+ print _con_.dual;
+quit;
+
+ proc optmodel;
+ /* declare variables */
+ var a >= 0, b >= 0, c>= 0;
+ /* declare objective */
+ min d = 225*a + 117*b + 420*c;
+ /* declare constraints */
+ con a + b + 3*c >= 12;
+ con 3*a + b + 4*c >= 19;
+ solve with lp / algorithm=ps;
+ print a b c;
+ print _con_.dual;
+quit;
+
+/* chapter 2.2 demo*/
+proc optmodel;
+ /* declare variables */ 
+var Desks >= 0, Chairs >= 0, Bookcases >= 0, Bedframes >= 0; 
+/* declare constraints */ 
+con Labor: 2*Desks + Chairs + 3*Bookcases + 2*Bedframes <= 225; 
+con Metal: Desks + Chairs + Bookcases + Bedframes <= 117; 
+con Wood: 3*Desks + 3*Chairs + 4*Bookcases + 4*Bedframes <= 420; 
+/* declare objective */ 
+max NetProfit = 94*Desks + 79*Chairs + 125*Bookcases + 109*Bedframes 
+				- 14 * (2*Desks + Chairs + 3*Bookcases + 2*Bedframes) 
+				- 20 * (Desks + Chairs + Bookcases + Bedframes) 
+				- 11 * (3*Desks + 3*Chairs + 4*Bookcases + 4*Bedframes); 
+expand; 
+solve; 
+print Desks Chairs Bookcases Bedframes; 
+quit;
+
+/*implicit */
+proc optmodel;
+ /* declare variables */ 
+var Desks >= 0, Chairs >= 0, Bookcases >= 0, Bedframes >= 0; 
+impvar Hrs = 2*Desks + Chairs + 3*Bookcases + 2*Bedframes; 
+impvar Lbs = Desks + Chairs + Bookcases + Bedframes; 
+impvar Ft3 = 3*Desks + 3*Chairs + 4*Bookcases + 4*Bedframes; 
+impvar Tc= 14*Hrs + 20*Lbs + Ft3*11;
+/* declare constraints */ 
+con Labor: Hrs <= 225, Metal: Lbs <= 117, Wood: Ft3 <= 420, Budget: Tc <=10000 /*added per excercise*/; 
+
+/* declare objective */ 
+max NetProfit = 94*Desks + 79*Chairs + 125*Bookcases + 109*Bedframes - 14*Hrs - 20*Lbs - 11*Ft3;
+ expand Budget; 
+ solve; 
+ print Desks Chairs Bookcases Bedframes; 
+ print Hrs Lbs Ft3; 
+ quit;
+
+/*efficient method*/
+proc optmodel;
+ /* declare sets*/ 
+set RESOURCES = /labor metal wood/;
+set PRODUCTS = /desks chairs bookcases bedframes/; 
+/*declare parameters */
+num selling_price {PRODUCTS} = [94 79 125 109]; 
+num cost {RESOURCES} = [14 20 11]; 
+num availability {RESOURCES} = [225 117 420]; 
+num required {PRODUCTS, RESOURCES} = [2 1 3 1 1 3 3 1 4 2 1 4]; 
+/* declare variables */ 
+var NumProd {PRODUCTS} >= 0; 
+impvar Revenue = sum {p in PRODUCTS} selling_price[p] * NumProd[p]; 
+impvar AmountUsed {r in RESOURCES} = sum {p in PRODUCTS} NumProd[p] * required[p,r]; 
+impvar TotalCost = sum {r in RESOURCES} cost[r] * AmountUsed[r]; 
+/* declare constraints */ 
+con Usage {r in RESOURCES}: AmountUsed[r] <= availability[r]; 
+/* declare objective */ 
+max NetProfit = Revenue - TotalCost; 
+expand / var impvar; 
+expand NetProfit; 
+expand Usage; 
+solve; 
+print NumProd; 
+print AmountUsed; 
+quit;
+
+/* transportation problem*/
+proc optmodel;
+ /* declare sets*/ 
+set DEST = /Boston Newark Toronto/;
+set ORIG = /Chicago Detriot/; 
+
+/*declare parameters */
+num unit_cost {ORIG,DEST} = [40 25 15 30 15 10]; 
+num demand {DEST} = [50 150 100]; 
+num supply {ORIG} = [200 150]; 
+/* print unit_cost Numship demand supply; */
+
+/* declare variables */ 
+var NumShip {ORIG,DEST} >= 0 ; 
+impvar flowout{o in ORIG} = sum {d in DEST} Numship[o,d]; 
+impvar flowin {d in DEST} = sum {o in ORIG} Numship[o,d]; 
+
+ expand FlowOut['Chicago'];
+ expand FlowIn['Boston'];
+ expand / impvar;
+ print FlowOut;
+ print FlowIn;
+
+/* declare constraints */ 
+con supply_con {o in ORIG}: flowout[o] <= supply [o]; 
+con demand_con {d in DEST}: flowin[d] >= demand [d]; 
+
+/* declare objective */ 
+min totalcost = sum{o in ORIG, d in DEST} unit_cost[o,d] * NumShip[o,d]; 
+expand;
+solve;
+print  NumShip;
+quit;
